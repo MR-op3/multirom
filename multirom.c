@@ -439,6 +439,9 @@ int nokexec_is_new_primary(void)
 
 int multirom(const char *rom_to_boot)
 {
+#ifdef MR_ALLOW_PREMACA_FIXES
+    int is_new_primary = 0;
+#endif
     if(multirom_find_base_dir() == -1)
     {
         ERROR("Could not find multirom dir\n");
@@ -521,6 +524,16 @@ int multirom(const char *rom_to_boot)
         ERROR("Skipping ROM selection, is_second_boot=%d, auto_boot_type=0x%x\n", s.is_second_boot, s.auto_boot_type);
         to_boot = s.current_rom;
     }
+#ifdef MR_ALLOW_PREMACA_FIXES
+    else if ((s.is_second_boot == 0) && (s.new_primary_inprogress))
+    {
+	ERROR("Skipping ROM selection due new primary swap in progress "
+		"is_second_boot=%d, new_primary_inprogress=%d "
+		"auto_boot_type=0x%x\n",
+		s.is_second_boot, s.new_primary_inprogress, s.auto_boot_type);
+        to_boot = s.current_rom;
+    }
+#endif
     else
     {
         // just to cache the result so that it does not take
@@ -576,7 +589,12 @@ int multirom(const char *rom_to_boot)
                 {
                     char path_bootimg[256];
 
+#ifdef MR_ALLOW_PREMACA_FIXES
+		    is_new_primary = nokexec_is_new_primary();
+		    if (is_new_primary) nokexec_backup_primary();
+#else
                     if (nokexec_is_new_primary()) nokexec_backup_primary();
+#endif
 
                     // now flash the secondary boot.img to primary slot
                     sprintf(path_bootimg, "%s/%s", to_boot->base_path, "boot.img");
@@ -658,6 +676,11 @@ int multirom(const char *rom_to_boot)
             {
                 // nkk71: force a full reboot (due to boot.img flashing from above), then autoboot the ROM
                 s.is_second_boot = 1;
+#ifdef MR_ALLOW_PREMACA_FIXES
+		s.new_primary_inprogress = is_new_primary;
+                INFO("premaca: is_new_primary:%d new_primary_inprogress:%d !\n", 
+			is_new_primary, s.new_primary_inprogress);
+#endif
                 exit = (EXIT_REBOOT | EXIT_UMOUNT);
                 INFO("nkk71: go for reboot second_boot!\n");
                 ERROR(SECOND_BOOT_KMESG); // go for second_boot = 1
@@ -834,6 +857,9 @@ int multirom_default_status(struct multirom_status *s)
 #ifdef MR_ALLOW_NKK71_NOKEXEC_WORKAROUND
     s->allow_nkk71_nokexec = NO_KEXEC_DISABLED;
 #endif
+#ifdef MR_ALLOW_PREMACA_FIXES
+    s->new_primary_inprogress = 0;
+#endif
     s->colors = 0;
     s->brightness = MULTIROM_DEFAULT_BRIGHTNESS;
     s->enable_adb = 0;
@@ -980,6 +1006,10 @@ int multirom_load_status(struct multirom_status *s)
         else if(strstr(name, "allow_nkk71_nokexec"))
             s->allow_nkk71_nokexec = atoi(arg);
 #endif
+#ifdef MR_ALLOW_PREMACA_FIXES
+        else if(strstr(name, "new_primary_inprogress"))
+            s->new_primary_inprogress = atoi(arg);
+#endif
         else if(strstr(name, "colors_v2"))
             s->colors = atoi(arg);
         else if(strstr(name, "brightness"))
@@ -1090,6 +1120,9 @@ int multirom_save_status(struct multirom_status *s)
 #ifdef MR_ALLOW_NKK71_NOKEXEC_WORKAROUND
     fprintf(f, "allow_nkk71_nokexec=%d\n", s->allow_nkk71_nokexec);
 #endif
+#ifdef MR_ALLOW_PREMACA_FIXES
+    fprintf(f, "new_primary_inprogress=%d\n", s->new_primary_inprogress);
+#endif
     fprintf(f, "colors_v2=%d\n", s->colors);
     fprintf(f, "brightness=%d\n", s->brightness);
     fprintf(f, "enable_adb=%d\n", s->enable_adb);
@@ -1127,6 +1160,9 @@ void multirom_dump_status(struct multirom_status *s)
     INFO("  current_rom=%s\n", s->current_rom ? s->current_rom->name : "NULL");
 #ifdef MR_ALLOW_NKK71_NOKEXEC_WORKAROUND
     INFO("  allow_nkk71_nokexec=%d\n", s->allow_nkk71_nokexec);
+#endif
+#ifdef MR_ALLOW_PREMACA_FIXES
+    INFO("  new_primary_inprogress=%d\n", s->new_primary_inprogress);
 #endif
     INFO("  colors_v2=%d\n", s->colors);
     INFO("  brightness=%d\n", s->brightness);

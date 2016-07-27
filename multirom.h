@@ -104,6 +104,9 @@ struct multirom_status
 #ifdef MR_ALLOW_NKK71_NOKEXEC_WORKAROUND
     int allow_nkk71_nokexec;
 #endif
+#ifdef MR_ALLOW_PREMACA_FIXES
+    int new_primary_inprogress;
+#endif
     int colors;
     int brightness;
     int enable_adb;
@@ -159,6 +162,9 @@ struct struct_nokexec
 
     int is_allow_kexec_primary;
     int is_always_restore_primary;
+#ifdef MR_ALLOW_PREMACA_FIXES
+    int new_primary_inprogress;
+#endif
 
     char * path_boot_mmcblk;
     char * path_primary_bootimg;
