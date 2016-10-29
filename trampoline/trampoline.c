@@ -37,7 +37,11 @@
 #include "encryption.h"
 
 #ifdef MR_POPULATE_BY_NAME_PATH
-	#include "Populate_ByName_using_emmc.c"
+#include "Populate_ByName_using_emmc.c"
+#endif
+
+#ifdef MR_USE_BINARY_SELECTOR
+#include "multirom_binary_selector.h"
 #endif
 
 #define EXEC_MASK (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)
@@ -77,6 +81,7 @@ static void run_multirom(void)
 {
     char path[256];
     struct stat info;
+    char multirom_bin[256] = MULTIROM_BIN;
 
     // busybox
     sprintf(path, "%s/%s", path_multirom, BUSYBOX_BIN);
@@ -91,8 +96,18 @@ static void run_multirom(void)
     sprintf(path, "%s/restart_after_crash", path_multirom);
     int restart = (stat(path, &info) >= 0);
 
+#ifdef MR_USE_BINARY_SELECTOR
+    if (get_mutirom_binary_string(multirom_bin) == -1)
+    {
+        strcpy(multirom_bin, MULTIROM_BIN);
+    }
+
+    // ensure null termination of multirom name string
+    multirom_bin[255] = '\0';
+#endif
+
     // multirom
-    sprintf(path, "%s/%s", path_multirom, MULTIROM_BIN);
+    sprintf(path, "%s/%s", path_multirom, &multirom_bin);
     if (stat(path, &info) < 0)
     {
         ERROR("Could not find multirom: %s\n", path);

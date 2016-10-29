@@ -45,7 +45,7 @@ $(MULTIROM_ZIP_TARGET): multirom trampoline signapk bbootimg mrom_kexec_static m
 	rm -rf $(MULTIROM_INST_DIR)
 	mkdir -p $(MULTIROM_INST_DIR)
 	cp -a $(install_zip_path)/prebuilt-installer/* $(MULTIROM_INST_DIR)/
-	cp -a $(TARGET_ROOT_OUT)/multirom $(MULTIROM_INST_DIR)/multirom/
+	cp -a $(TARGET_ROOT_OUT)/multirom* $(MULTIROM_INST_DIR)/multirom/
 	cp -a $(TARGET_ROOT_OUT)/trampoline $(MULTIROM_INST_DIR)/multirom/
 	cp -a $(TARGET_OUT_OPTIONAL_EXECUTABLES)/mrom_kexec_static $(MULTIROM_INST_DIR)/multirom/kexec
 	cp -a $(TARGET_OUT_OPTIONAL_EXECUTABLES)/mrom_adbd $(MULTIROM_INST_DIR)/multirom/adbd

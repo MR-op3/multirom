@@ -50,6 +50,11 @@ else
 endif
 endif
 
+ifneq ($(MR_BINARY_SELECTOR),)
+    LOCAL_CFLAGS += -DMR_USE_BINARY_SELECTOR=1
+    LOCAL_SRC_FILES += ../../../../$(MR_BINARY_SELECTOR)
+endif
+
 ifeq ($(MR_ENCRYPTION),true)
     LOCAL_CFLAGS += -DMR_ENCRYPTION
     LOCAL_SRC_FILES += encryption.c
